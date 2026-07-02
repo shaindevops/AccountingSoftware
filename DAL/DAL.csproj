@@ -164,6 +164,7 @@
     <Compile Include="DALUserlog.cs" />
     <Compile Include="DALUserroles.cs" />
     <Compile Include="DALUsers.cs" />
+    <Compile Include="AdoHelper.cs" />
     <Compile Include="ConnectionHelper.cs" />
     <Compile Include="DB.cs" />
     <Compile Include="Migrations\202607022109298_UpdateDb.cs" />

@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using SSG.Groups_Forms;
 using System;
@@ -32,13 +33,12 @@ namespace SSG.Products_Forms
             try
             {
                 dgvprolist.DataSource = null;
-                dgvprolist.DataSource = bll.FillGridProducts();
-                dgvprolist.Columns["id"].Visible = false;
                 btncount.Text = bll.ProductCount();
 
                 chkprogroup.Checked = false;
                 cmbsearchby.Enabled = false;
                 dgvprolist.DataSource = bll.SearchProducts(txtsearch.Text);
+                dgvprolist.Columns["id"].Visible = false;
 
                 if (dgvprolist.Rows.Count == 0)
                 {
@@ -51,8 +51,9 @@ namespace SSG.Products_Forms
                     btndelete.Enabled = true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowProducts.FillGridProducts", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
             
@@ -152,8 +153,9 @@ namespace SSG.Products_Forms
                     id = (int)dgvprolist.SelectedRows[0].Cells["id"].Value;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowProducts.dgvprolist_SelectionChanged", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -171,6 +173,11 @@ namespace SSG.Products_Forms
                 cmbsearchby.DataSource = bllG.GroupName();
                 if (chkprogroup.Checked)
                 {
+                    // NOTE: `G` is a field initialized once as `new Groups()` and never
+                    // reassigned anywhere in this form, so `G != null` is always true and
+                    // the "no product in this group" branch below is unreachable dead code.
+                    // This looks like a pre-existing bug (probably meant to check the result
+                    // of a group lookup), left unchanged pending confirmation of intended behavior.
                     if (G != null)
                     {
                         dgvprolist.DataSource = bll.SearchProductsBYGroup(cmbsearchby.Text, txtsearch.Text);
@@ -186,8 +193,9 @@ namespace SSG.Products_Forms
                     dgvprolist.DataSource = bll.SearchProducts(txtsearch.Text);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowProducts.chkprogroup_CheckedChanged_1", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -204,8 +212,9 @@ namespace SSG.Products_Forms
             {
                 dgvprolist.DataSource = bll.SearchProducts(txtsearch.Text);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowProducts.txtsearch_TextChanged_1", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
