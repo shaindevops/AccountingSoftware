@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="BE.Setting" Collapsed="true">
+    <Position X="8" Y="1.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAACQCABAgAIAAAAAAAAAAAAQCAEAAAEABAAgAAgQ=</HashCode>
+      <FileName>Setting.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="company" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.Tbl_Company" Collapsed="true">
+    <Position X="5.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEACAAAAAAIACiAAAACAAIAEAZAAAjAAgAAAAAgA=</HashCode>
+      <FileName>Tbl_Company.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Settings" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Usergroup" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAAAAEAAAAAAAAAAAgAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Usergroup.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Users" />
+      <Property Name="Roles" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Userroles" Collapsed="true">
+    <Position X="0.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAABAAAAAAAAAAAAAAAAAAEAAAAAAAACBgAAAAgA=</HashCode>
+      <FileName>Userroles.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Usergroup" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.Users" Collapsed="true">
+    <Position X="3.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAIAAAAAAAAABAIAEQAAAAAIAAAQAAAAAAAAggBAAgA=</HashCode>
+      <FileName>Users.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Usergroup" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.CostGroup" Collapsed="true">
+    <Position X="1" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAgAAAAAAgAAAQAAAAAAAAGAQAAAABAAgA=</HashCode>
+      <FileName>CostGroup.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="AccountBooks" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.AccountBook" Collapsed="true">
+    <Position X="4.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAEQAgAAAAAggIAAAAAAAAAAABAQQAAAAgAwA=</HashCode>
+      <FileName>AccountBook.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="AccountId" />
+      <Property Name="PeopleId" />
+      <Property Name="CostGroupId" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.Accounts">
+    <Position X="8.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAIAAAIAAAAAAACgAAAAAAAgAAAACAAQAAABAAgA=</HashCode>
+      <FileName>Accounts.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="AccountBooks" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.People">
+    <Position X="4.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAACAggAAIAAgAAAUCAAAAAACCAQAAAABAAgA=</HashCode>
+      <FileName>People.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Factors" />
+      <Property Name="AccountBooks" />
+      <Property Name="Accounts" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Depots">
+    <Position X="0.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAABAAAAAAAAAAQIgAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Depots.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Stocks" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Products">
+    <Position X="2.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAEAAAAAhgAAAAAAgAAQIgAAAABAAAABAACAAAgE=</HashCode>
+      <FileName>Products.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Stocks" />
+      <Property Name="Details" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Stocks">
+    <Position X="2.75" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAACAAAAAAAgAIAAAAAAAABAAABAAAQAAAAAICAAAgA=</HashCode>
+      <FileName>Stocks.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Depot" />
+      <Property Name="Product" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BE.Factors">
+    <Position X="6.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gIAAAAADAAADAAAEAAAAQAAAAAAQAAAAAAABQAAAAgA=</HashCode>
+      <FileName>Factors.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Person" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Details" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="BE.Details">
+    <Position X="8.25" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAACAABAAAAAAIAAAAAABABAABAAAAAAAAAAAAAAggA=</HashCode>
+      <FileName>Details.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Product" />
+      <Property Name="Depot" />
+      <Property Name="Factor" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
