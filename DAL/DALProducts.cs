@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,149 +13,163 @@ namespace DAL
 {
     public class DALProducts
     {
-        DB db = new DB();
-        public bool ExistProduct(Products P)
+        /// <summary>
+        /// True if a product with the same code and name already exists
+        /// (i.e. creating one would be a duplicate). Renamed from the
+        /// original "ExistProduct" (which confusingly returned true when
+        /// the product did NOT exist) - same underlying query, clearer
+        /// name and non-inverted result.
+        /// </summary>
+        public bool IsDuplicateProduct(Products P)
         {
-            var q = db.Products.Where(i => i.Code == P.Code && i.Name == P.Name);
-            if(q.Count() == 0)
+            using (var db = new DB())
             {
-                return true;
+                return db.Products.Any(i => i.Code == P.Code && i.Name == P.Name);
             }
-            return false;
         }
+
         public string Create(Products P, int ProductGroupId)
         {
-            if(ExistProduct(P))
+            try
             {
-                var group = db.Groups.FirstOrDefault(g => g.id == ProductGroupId);
-                if(group != null)
+                using (var db = new DB())
                 {
-                    P.GroupName = group.Name;
-                    P.Group = group;
+                    if (IsDuplicateProduct(P))
+                    {
+                        return "The product in question is a duplicate";
+                    }
+
+                    var group = db.Groups.FirstOrDefault(g => g.id == ProductGroupId);
+                    if (group != null)
+                    {
+                        P.GroupName = group.Name;
+                        P.Group = group;
+                    }
+
+                    db.Products.Add(P);
+                    db.SaveChanges();
+                    return "The product has been successfully registered";
                 }
-
-                db.Products.Add(P);
-                db.SaveChanges();
-                return "The product has been successfully registered";
             }
-            else
+            catch (Exception e)
             {
-                return "The product in question is a duplicate";
+                AppLogger.LogError("DALProducts.Create", e);
+                return "There was a problem registering the product: \n" + e.Message;
             }
-
         }
+
         public Products ReadId(int id)
         {
-            return db.Products.Where(i => i.id == id).FirstOrDefault();
+            using (var db = new DB())
+            {
+                return db.Products.Where(i => i.id == id).FirstOrDefault();
+            }
         }
+
         public DataTable FillGridProducts()
         {
-            string cmd = "SELECT DISTINCT \r\n                         TOP (100) PERCENT dbo.Products.id, dbo.Groups.Name AS [Group Name], dbo.Products.Code AS [Product Code], dbo.Products.Name AS [Product Name], dbo.Products.Size AS [Product Size], \r\n                         dbo.Products.DefaultPrice AS [Sell Price $], dbo.Products.Description, dbo.Products.Alarm AS Alert, dbo.Products.Regdate AS [Date Register]\r\nFROM            dbo.Products INNER JOIN\r\n                         dbo.Groups ON dbo.Products.Group_id = dbo.Groups.id\r\nWHERE        (dbo.Products.DelStatus = 0)\r\nORDER BY [Group Name] DESC, [Product Name] DESC";
-            SqlConnection con = new SqlConnection(@"data source=.; initial catalog=SpadanDB; integrated security=true");
-            var sqladapter = new SqlDataAdapter(cmd, con);
-            var commandbuilder = new SqlCommandBuilder(sqladapter);
-            var ds = new DataSet();
-            sqladapter.Fill(ds);
-            return ds.Tables[0];
+            const string cmd = "SELECT DISTINCT \r\n                         TOP (100) PERCENT dbo.Products.id, dbo.Groups.Name AS [Group Name], dbo.Products.Code AS [Product Code], dbo.Products.Name AS [Product Name], dbo.Products.Size AS [Product Size], \r\n                         dbo.Products.DefaultPrice AS [Sell Price $], dbo.Products.Description, dbo.Products.Alarm AS Alert, dbo.Products.Regdate AS [Date Register]\r\nFROM            dbo.Products INNER JOIN\r\n                         dbo.Groups ON dbo.Products.Group_id = dbo.Groups.id\r\nWHERE        (dbo.Products.DelStatus = 0)\r\nORDER BY [Group Name] DESC, [Product Name] DESC";
+            return AdoHelper.ExecuteQuery("DALProducts.FillGridProducts", cmd);
         }
-        
+
         public DataTable SearchProducts(string P)
         {
-            try
-            {
-                SqlCommand cmd = new SqlCommand("dbo.SearchProduct");
-                SqlConnection con = new SqlConnection(@"data source=.; initial catalog=SpadanDB; integrated security=true");
-                cmd.Connection = con;
-                cmd.Parameters.AddWithValue("@search", P);
-                cmd.CommandType = CommandType.StoredProcedure;
-                var sqladapter = new SqlDataAdapter();
-                sqladapter.SelectCommand = cmd;
-                var commandbuilder = new SqlCommandBuilder(sqladapter);
-                var ds = new DataSet();
-                sqladapter.Fill(ds);
-                return ds.Tables[0];
-            }
-            catch (Exception)
-            {
-
-                return null;
-            }
+            return AdoHelper.ExecuteStoredProcedure(
+                $"DALProducts.SearchProducts(P='{P}')",
+                "dbo.SearchProduct",
+                new SqlParameter("@search", P));
         }
+
         public DataTable SearchProductsBYGroup(string G, string P)
         {
-            try
-            {
-                SqlCommand cmd = new SqlCommand("dbo.SearchProductByGroup");
-                SqlConnection con = new SqlConnection(@"data source=.; initial catalog=SpadanDB; integrated security=true");
-                cmd.Connection = con;
-                cmd.Parameters.AddWithValue("@groupname", G);
-                cmd.Parameters.AddWithValue("@search", P);
-                cmd.CommandType = CommandType.StoredProcedure;
-                var sqladapter = new SqlDataAdapter();
-                sqladapter.SelectCommand = cmd;
-                var commandbuilder = new SqlCommandBuilder(sqladapter);
-                var ds = new DataSet();
-                sqladapter.Fill(ds);
-                return ds.Tables[0];
-            }
-            catch (Exception)
-            {
-
-                return null;
-            }
+            return AdoHelper.ExecuteStoredProcedure(
+                $"DALProducts.SearchProductsBYGroup(G='{G}', P='{P}')",
+                "dbo.SearchProductByGroup",
+                new SqlParameter("@groupname", G),
+                new SqlParameter("@search", P));
         }
+
         public string Update(int id, Products P)
         {
-            var q = db.Products.Where(i => i.id == id).FirstOrDefault();
-            if(q != null)
+            try
             {
-                q.Code = P.Code;
-                q.Name = P.Name;
-                q.Image = P.Image;
-                q.Size = P.Size;
-                q.Alarm = P.Alarm;
-                q.DefaultPrice = P.DefaultPrice;
-                q.Description = P.Description;
-                q.GroupName = P.GroupName;
-                db.SaveChanges();
-                return "The product was edited successfully";
+                using (var db = new DB())
+                {
+                    var q = db.Products.Where(i => i.id == id).FirstOrDefault();
+                    if (q != null)
+                    {
+                        q.Code = P.Code;
+                        q.Name = P.Name;
+                        q.Image = P.Image;
+                        q.Size = P.Size;
+                        q.Alarm = P.Alarm;
+                        q.DefaultPrice = P.DefaultPrice;
+                        q.Description = P.Description;
+                        q.GroupName = P.GroupName;
+                        db.SaveChanges();
+                        return "The product was edited successfully";
+                    }
+                    else
+                    {
+                        return "No product found";
+                    }
+                }
             }
-            else
+            catch (Exception e)
             {
-                return "No product found";
+                AppLogger.LogError($"DALProducts.Update(id={id})", e);
+                return "There was a problem editing the product: \n" + e.Message;
             }
         }
+
         public string Delete(int id)
         {
-            var q = db.Products.Include("Stocks").Include("Details").Where(i => i.id == id).FirstOrDefault();
-            if (q != null)
+            try
             {
-                q.DelStatus = true;
-                foreach (var stocks in q.Stocks)
+                using (var db = new DB())
                 {
-                    stocks.DelStatus = true;
+                    var q = db.Products.Include("Stocks").Include("Details").Where(i => i.id == id).FirstOrDefault();
+                    if (q != null)
+                    {
+                        q.DelStatus = true;
+                        foreach (var stocks in q.Stocks)
+                        {
+                            stocks.DelStatus = true;
+                        }
+                        foreach (var details in q.Details)
+                        {
+                            details.Delstatus = true;
+                        }
+                        db.SaveChanges();
+                        return "The product was Deleted successfully";
+                    }
+                    else
+                    {
+                        return "No product found";
+                    }
                 }
-                foreach (var details in q.Details)
-                {
-                    details.Delstatus = true;
-                }
-                db.SaveChanges();
-                return "The product was Deleted successfully";
             }
-            else
+            catch (Exception e)
             {
-                return "No product found";
+                AppLogger.LogError($"DALProducts.Delete(id={id})", e);
+                return "There was a problem deleting the product: \n" + e.Message;
             }
         }
+
         public string ProductCount()
         {
-            return db.Products.Where(i => i.DelStatus == false).Count().ToString();
+            using (var db = new DB())
+            {
+                return db.Products.Where(i => i.DelStatus == false).Count().ToString();
+            }
         }
 
         public Products ProductName(string Name)
         {
-            return db.Products.Where(i => i.Name == Name).FirstOrDefault();
+            using (var db = new DB())
+            {
+                return db.Products.Where(i => i.Name == Name).FirstOrDefault();
+            }
         }
-
     }
 }
