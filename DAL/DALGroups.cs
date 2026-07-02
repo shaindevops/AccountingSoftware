@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,87 +12,128 @@ namespace DAL
 {
     public class DALGroups
     {
-        DB db = new DB();
-
         public string Create(Groups G)
         {
-            db.Groups.Add(G);
-            db.SaveChanges();
-            return "Group created successfully";
+            try
+            {
+                using (var db = new DB())
+                {
+                    db.Groups.Add(G);
+                    db.SaveChanges();
+                    return "Group created successfully";
+                }
+            }
+            catch (Exception e)
+            {
+                AppLogger.LogError("DALGroups.Create", e);
+                return "There was a problem creating the group: \n" + e.Message;
+            }
         }
         public Groups ReadId(int id)
         {
-            return db.Groups.Where(i => i.id == id).FirstOrDefault();
+            using (var db = new DB())
+            {
+                return db.Groups.Where(i => i.id == id).FirstOrDefault();
+            }
         }
         public DataTable ReadFillGroup()
         {
-            string cmd = "SELECT DISTINCT TOP (100) PERCENT dbo.Groups.id, dbo.Groups.Name AS [Group Name], dbo.Groups.Unit1 AS [Unit 1], dbo.Groups.Unit2 AS [Unit 2], dbo.Groups.Regdate\r\nFROM            dbo.Groups WHERE        (dbo.Groups.DelStatuse = 0)\r\nORDER BY [Group Name] DESC";
-            SqlConnection con = new SqlConnection(@"data source=.; initial catalog=SpadanDB; integrated security=true");
-            var sqladapter = new SqlDataAdapter(cmd, con);
-            var commandbuilder = new SqlCommandBuilder(sqladapter);
-            var ds = new DataSet();
-            sqladapter.Fill(ds);
-            return ds.Tables[0];
+            const string cmd = "SELECT DISTINCT TOP (100) PERCENT dbo.Groups.id, dbo.Groups.Name AS [Group Name], dbo.Groups.Unit1 AS [Unit 1], dbo.Groups.Unit2 AS [Unit 2], dbo.Groups.Regdate\r\nFROM            dbo.Groups WHERE        (dbo.Groups.DelStatuse = 0)\r\nORDER BY [Group Name] DESC";
+            return AdoHelper.ExecuteQuery("DALGroups.ReadFillGroup", cmd);
         }
         public string Update(int id, Groups G)
         {
-            var q = db.Groups.Where(i => i.id == id).FirstOrDefault();
-            if (q != null)
+            try
             {
-                q.Name = G.Name;
-                q.Unit1 = G.Unit1;
-                q.Unit2 = G.Unit2;
-                db.SaveChanges();
-                return "The desired group was edited";
+                using (var db = new DB())
+                {
+                    var q = db.Groups.Where(i => i.id == id).FirstOrDefault();
+                    if (q != null)
+                    {
+                        q.Name = G.Name;
+                        q.Unit1 = G.Unit1;
+                        q.Unit2 = G.Unit2;
+                        db.SaveChanges();
+                        return "The desired group was edited";
+                    }
+                    else
+                    {
+                        return "The desired group was not found";
+                    }
+                }
             }
-            else
+            catch (Exception e)
             {
-                return "The desired group was not found";
+                AppLogger.LogError($"DALGroups.Update(id={id})", e);
+                return "There was a problem editing the group: \n" + e.Message;
             }
         }
         public string Delete(int id)
         {
-            var q = db.Groups.Where(i => i.id == id).FirstOrDefault();
-            if (q != null)
+            try
             {
-                q.DelStatuse = true;
-                db.SaveChanges();
-                return "The desired group was edited";
+                using (var db = new DB())
+                {
+                    var q = db.Groups.Where(i => i.id == id).FirstOrDefault();
+                    if (q != null)
+                    {
+                        q.DelStatuse = true;
+                        db.SaveChanges();
+                        return "The desired group was edited";
+                    }
+                    else
+                    {
+                        return "The desired group was not found";
+                    }
+                }
             }
-            else
+            catch (Exception e)
             {
-                return "The desired group was not found";
+                AppLogger.LogError($"DALGroups.Delete(id={id})", e);
+                return "There was a problem deleting the group: \n" + e.Message;
             }
         }
         public string GroupCount()
         {
-            return db.Groups.Where(i => i.DelStatuse == false).Count().ToString();
+            using (var db = new DB())
+            {
+                return db.Groups.Where(i => i.DelStatuse == false).Count().ToString();
+            }
         }
         public List<string> GroupName()
         {
-            return db.Groups.Where(i => i.DelStatuse == false).Select(i => i.Name).ToList();
+            using (var db = new DB())
+            {
+                return db.Groups.Where(i => i.DelStatuse == false).Select(i => i.Name).ToList();
+            }
         }
         public Groups GName(string G)
         {
-            return db.Groups.Where(i => i.Name == G).FirstOrDefault();
+            using (var db = new DB())
+            {
+                return db.Groups.Where(i => i.Name == G).FirstOrDefault();
+            }
         }
 
         public void GetGroupUnit(int productId, out string unit1, out string unit2)
         {
-            var groupUnits = (from p in db.Products
-                              join g in db.Groups on p.Group.id equals g.id
-                              where p.id == productId
-                              select new { g.Unit1, g.Unit2 }).FirstOrDefault();
+            using (var db = new DB())
+            {
+                var groupUnits = (from p in db.Products
+                                  join g in db.Groups on p.Group.id equals g.id
+                                  where p.id == productId
+                                  select new { g.Unit1, g.Unit2 }).FirstOrDefault();
 
-            if (groupUnits != null)
-            {
-                unit1 = groupUnits.Unit1;
-                unit2 = groupUnits.Unit2;
-            }
-            else
-            {
-                unit1 = string.Empty;
-                unit2 = string.Empty;
+                if (groupUnits != null)
+                {
+                    unit1 = groupUnits.Unit1;
+                    unit2 = groupUnits.Unit2;
+                }
+                else
+                {
+                    unit1 = string.Empty;
+                    unit2 = string.Empty;
+                }
             }
         }
     }

@@ -105,8 +105,9 @@ namespace SSG.CostGroup_Forms
                 }
 
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowCostGroup.FrmShowCostGroup_Load", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -127,8 +128,9 @@ namespace SSG.CostGroup_Forms
                 }
                 fcg.ShowDialog();
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowCostGroup.btnadd_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -157,8 +159,9 @@ namespace SSG.CostGroup_Forms
                 }
                 
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowCostGroup.btnedit_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -177,8 +180,9 @@ namespace SSG.CostGroup_Forms
                 }
                 FrmShowCostGroup_Load(null, null);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowCostGroup.btndelete_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
 
@@ -194,8 +198,9 @@ namespace SSG.CostGroup_Forms
                 }
                 
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowCostGroup.dgvcostgroup_SelectionChanged", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
