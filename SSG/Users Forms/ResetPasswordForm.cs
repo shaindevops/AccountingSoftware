@@ -49,7 +49,7 @@ namespace SSG
 
         private void txtcurrentpassword_TextChanged(object sender, System.EventArgs e)
         {
-            if(txtcurrentpassword.Text == bll.Decode(U.password))
+            if(bll.VerifyPassword(txtcurrentpassword.Text, U.password))
             {
                 lblnewpass.Enabled = true;
                 lblconfpass.Enabled = true;

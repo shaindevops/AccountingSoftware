@@ -1,4 +1,5 @@
 ﻿using BE;
+using BLL.Security;
 using DAL;
 using System;
 using System.Collections.Generic;
@@ -12,29 +13,15 @@ namespace BLL
 {
     public class BLLUser
     {
-        public string Encode(string pass)
-        {
-            byte[] encData_byte = new byte[pass.Length];
-            encData_byte = System.Text.Encoding.UTF8.GetBytes(pass);
-            string encodeddata = Convert.ToBase64String(encData_byte);
-            return encodeddata;
-
-        }
-        public string Decode(string Encodepass)
-        {
-            System.Text.UTF8Encoding encoder = new System.Text.UTF8Encoding();
-            System.Text.Decoder dec = encoder.GetDecoder();
-            byte[] todecode = Convert.FromBase64String(Encodepass);
-            int charcount = dec.GetCharCount(todecode, 0, todecode.Length);
-            char[] decode_char = new char[charcount];
-            dec.GetChars(todecode, 0, todecode.Length, decode_char, 0);
-            string resault = new string(decode_char);
-            return resault;
-        }
         DALUsers dal = new DALUsers();
+
+        /// <summary>
+        /// Registers a brand-new user. The plaintext password supplied on
+        /// U.password is hashed (PBKDF2) before it reaches the DAL/database.
+        /// </summary>
         public string Create(Users U, Usergroup UG)
         {
-            U.password = Encode(U.password);
+            U.password = PasswordHasher.HashNew(U.password);
             return dal.Create(U, UG);
         }
         public bool IsRegistered()
@@ -65,9 +52,17 @@ namespace BLL
         {
             return dal.ReadUserName();
         }
+        /// <summary>
+        /// Updates a user's profile. If U.password is null/empty, the
+        /// existing password is left untouched (used by the "edit user"
+        /// screen, which no longer pre-fills/displays the password -
+        /// PBKDF2 hashes cannot be decoded back to plaintext, unlike the
+        /// old Base64 scheme). If a new password is supplied, it is hashed
+        /// with PBKDF2 before being persisted.
+        /// </summary>
         public string Update(int id, Users U)
         {
-            U.password = Encode(U.password);
+            U.password = string.IsNullOrEmpty(U.password) ? null : PasswordHasher.HashNew(U.password);
             return dal.Update(id, U);
         }
         public string Delete(int id)
@@ -78,9 +73,50 @@ namespace BLL
         {
             return dal.ActivityRegistered();
         }
+        /// <summary>
+        /// Verifies credentials and returns the matching user, or null if
+        /// the username/password combination is invalid.
+        ///
+        /// Backward-compatible password migration: verification accepts
+        /// both the new PBKDF2 format and legacy Base64 passwords. On a
+        /// successful login with a legacy password, the password is
+        /// transparently re-hashed with PBKDF2 and persisted, so the
+        /// migration happens gradually as users log in - no bulk migration
+        /// or forced password reset is required.
+        /// </summary>
         public Users Login(string username, string Pass)
         {
-            return dal.Login(username, Encode(Pass));
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(Pass))
+            {
+                return null;
+            }
+
+            Users user = dal.GetByUsernameWithGroup(username);
+            if (user == null || !PasswordHasher.Verify(Pass, user.password))
+            {
+                return null;
+            }
+
+            if (PasswordHasher.IsLegacyFormat(user.password))
+            {
+                string upgradedHash = PasswordHasher.HashNew(Pass);
+                dal.UpdatePasswordHash(user.id, upgradedHash);
+                user.password = upgradedHash;
+            }
+
+            return user;
+        }
+
+        /// <summary>
+        /// Verifies a plaintext password against a stored hash (either
+        /// format). Used e.g. by "confirm current password" screens, which
+        /// previously relied on reversing a Base64 "encoded" password -
+        /// that reversal is no longer possible (or safe) once a password is
+        /// PBKDF2-hashed, so callers must verify instead of decode.
+        /// </summary>
+        public bool VerifyPassword(string plainPassword, string storedPassword)
+        {
+            return PasswordHasher.Verify(plainPassword, storedPassword);
         }
         public bool AccessTo(Users U, string S, int A)
         {

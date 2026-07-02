@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -11,201 +12,280 @@ namespace DAL
 {
     public class DALUsers
     {
-        DB db = new DB();
         public string Create(Users U, Usergroup UG)
         {
             try
             {
-                if (Read(U))
+                using (var db = new DB())
                 {
-                    U.Usergroup = db.UserGroups.Find(UG.id);
-                    db.Users.Add(U);
-                    db.SaveChanges();
-                    return "The registration of the desired user was done successfully";
-                }
-                else
-                {
-                    return "The user is duplicate!!!";
+                    if (Read(U))
+                    {
+                        U.Usergroup = db.UserGroups.Find(UG.id);
+                        db.Users.Add(U);
+                        db.SaveChanges();
+                        return "The registration of the desired user was done successfully";
+                    }
+                    else
+                    {
+                        return "The user is duplicate!!!";
+                    }
                 }
             }
             catch (Exception e)
             {
-
+                AppLogger.LogError("DALUsers.Create", e);
                 return "User registration encountered a problem!!! \n" + e.Message;
             }
-
         }
         public bool IsRegistered()
         {
-            return db.Users.Count() > 0;
+            using (var db = new DB())
+            {
+                return db.Users.Count() > 0;
+            }
         }
         public bool Read(Users U)
         {
-            var q = db.Users.Where(i => i.Username == U.Username && i.PhoneNo == U.PhoneNo && i.Email == U.Email).FirstOrDefault();
-            if (q == null)
+            using (var db = new DB())
             {
-                return true;
-            }
-            else
-            {
-                return false;
+                var q = db.Users.Where(i => i.Username == U.Username && i.PhoneNo == U.PhoneNo && i.Email == U.Email).FirstOrDefault();
+                return q == null;
             }
         }
         public DataTable Read()
         {
             string cmd = "SELECT DISTINCT \r\n                         dbo.Users.id, dbo.Users.Fullname AS [Full Name], dbo.Users.NationalID AS [National Id], dbo.Users.PhoneNo AS Phone, dbo.Users.Email, dbo.Users.Username, dbo.Users.Regdate AS [Register Date], \r\n                         dbo.Usergroups.Title AS [User Type]\r\nFROM            dbo.Users INNER JOIN\r\n                         dbo.Usergroups ON dbo.Users.Usergroup_id = dbo.Usergroups.id\r\nWHERE        (dbo.Users.DelStatus = 0)";
-            SqlConnection con = new SqlConnection(@"data source=.; initial catalog=SpadanDB; integrated security=true");
-            var sqladapter = new SqlDataAdapter(cmd, con);
-            var commandbuilder = new SqlCommandBuilder(sqladapter);
-            var ds = new DataSet();
-            sqladapter.Fill(ds);
-            return ds.Tables[0];
+            try
+            {
+                using (var con = new SqlConnection(ConnectionHelper.ConnectionString))
+                using (var sqladapter = new SqlDataAdapter(cmd, con))
+                {
+                    var commandbuilder = new SqlCommandBuilder(sqladapter);
+                    var ds = new DataSet();
+                    sqladapter.Fill(ds);
+                    return ds.Tables[0];
+                }
+            }
+            catch (Exception e)
+            {
+                AppLogger.LogError("DALUsers.Read()", e);
+                return null;
+            }
         }
         public DataTable Read(string u, int index)
         {
             try
             {
-                SqlCommand cmd = new SqlCommand("dbo.SearchUser");
-                if (index == 0)
+                string procedureName;
+                switch (index)
                 {
-                    cmd.CommandText = "dbo.SearchUser";
+                    case 1: procedureName = "dbo.SearchUserName"; break;
+                    case 2: procedureName = "dbo.SearchUserPhone"; break;
+                    case 3: procedureName = "dbo.SearchUserNationalId"; break;
+                    case 4: procedureName = "dbo.SearchUserGroup"; break;
+                    default: procedureName = "dbo.SearchUser"; break;
                 }
-                else if (index == 1)
-                {
-                    cmd.CommandText = "dbo.SearchUserName";
-                }
-                else if (index == 2)
-                {
-                    cmd.CommandText = "dbo.SearchUserPhone";
-                }
-                else if (index == 3)
-                {
-                    cmd.CommandText = "dbo.SearchUserNationalId";
-                }
-                else if (index == 4)
-                {
-                    cmd.CommandText = "dbo.SearchUserGroup";
-                }
-                SqlConnection con = new SqlConnection(@"data source=.; initial catalog=SpadanDB; integrated security=true");
-                cmd.Connection = con;
-                cmd.Parameters.AddWithValue("@search", u);
-                cmd.CommandType = CommandType.StoredProcedure;
-                var sqladapter = new SqlDataAdapter();
-                sqladapter.SelectCommand = cmd;
-                var commandbuilder = new SqlCommandBuilder(sqladapter);
-                var ds = new DataSet();
-                sqladapter.Fill(ds);
-                return ds.Tables[0];
-            }
-            catch (Exception)
-            {
 
+                using (var con = new SqlConnection(ConnectionHelper.ConnectionString))
+                using (var cmd = new SqlCommand(procedureName, con))
+                {
+                    cmd.Parameters.AddWithValue("@search", u);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    using (var sqladapter = new SqlDataAdapter(cmd))
+                    {
+                        var commandbuilder = new SqlCommandBuilder(sqladapter);
+                        var ds = new DataSet();
+                        sqladapter.Fill(ds);
+                        return ds.Tables[0];
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                AppLogger.LogError($"DALUsers.Read(u='{u}', index={index})", e);
                 return null;
             }
         }
         public Users Read(int id)
         {
-            return db.Users.Where(i => i.id == id).FirstOrDefault();
+            using (var db = new DB())
+            {
+                return db.Users.Where(i => i.id == id).FirstOrDefault();
+            }
         }
         public Users ReadU(string s)
         {
-            return db.Users.Where(i => i.Fullname == s).SingleOrDefault();
+            using (var db = new DB())
+            {
+                return db.Users.Where(i => i.Fullname == s).SingleOrDefault();
+            }
         }
         public List<string> ReadUserName()
         {
-            return db.Users.Where(i => i.DelStatus == false).Select(i => i.Fullname).ToList();
+            using (var db = new DB())
+            {
+                return db.Users.Where(i => i.DelStatus == false).Select(i => i.Fullname).ToList();
+            }
         }
+
+        /// <summary>
+        /// Updates a user's profile fields. If U.password is null, the
+        /// existing password hash is left untouched - callers (BLLUser)
+        /// pass null to mean "no password change requested".
+        /// </summary>
         public string Update(int id, Users U)
         {
-            var q = db.Users.Where(i => i.id == id).FirstOrDefault();
             try
             {
-                if (q != null)
+                using (var db = new DB())
                 {
-                    q.Fullname = U.Fullname;
-                    q.PhoneNo = U.PhoneNo;
-                    q.NationalID = U.NationalID;
-                    q.Username = U.Username;
-                    q.password = U.password;
-                    q.pic = U.pic;
-                    db.SaveChanges();
-                    return "The user information has been successfully edited";
-                }
-                else
-                {
-                    return "The desired user was not found!!!";
+                    var q = db.Users.Where(i => i.id == id).FirstOrDefault();
+                    if (q != null)
+                    {
+                        q.Fullname = U.Fullname;
+                        q.PhoneNo = U.PhoneNo;
+                        q.NationalID = U.NationalID;
+                        q.Username = U.Username;
+                        if (!string.IsNullOrEmpty(U.password))
+                        {
+                            q.password = U.password;
+                        }
+                        q.pic = U.pic;
+                        db.SaveChanges();
+                        return "The user information has been successfully edited";
+                    }
+                    else
+                    {
+                        return "The desired user was not found!!!";
+                    }
                 }
             }
             catch (Exception e)
             {
-
+                AppLogger.LogError($"DALUsers.Update(id={id})", e);
                 return "There was a problem editing user information: \n" + e.Message;
             }
         }
-        public string Delete(int id)
+
+        /// <summary>
+        /// Persists an already-hashed password for a user, without touching
+        /// any other field. Used for the transparent legacy-Base64-to-PBKDF2
+        /// upgrade performed on successful login.
+        /// </summary>
+        public void UpdatePasswordHash(int id, string newPasswordHash)
         {
-            var u = db.Users.Include("UserLogs").Where(i => i.id == id).FirstOrDefault();
             try
             {
-                if (u != null)
+                using (var db = new DB())
                 {
-                    u.DelStatus = true;
-                    foreach (var logs in u.UserLogs)
+                    var q = db.Users.Where(i => i.id == id).FirstOrDefault();
+                    if (q != null)
                     {
-                        logs.Delstatus = true;
+                        q.password = newPasswordHash;
+                        db.SaveChanges();
                     }
-                    db.SaveChanges();
-                    return "The deletion of user information was done successfully!";
-                }
-                else
-                {
-                    return "The desired user was not found!!!";
                 }
             }
             catch (Exception e)
             {
+                // Non-fatal: if the upgrade write fails, the user still
+                // logged in successfully. We'll just try to upgrade them
+                // again next time.
+                AppLogger.LogError($"DALUsers.UpdatePasswordHash(id={id})", e);
+            }
+        }
 
+        public string Delete(int id)
+        {
+            try
+            {
+                using (var db = new DB())
+                {
+                    var u = db.Users.Include("UserLogs").Where(i => i.id == id).FirstOrDefault();
+                    if (u != null)
+                    {
+                        u.DelStatus = true;
+                        foreach (var logs in u.UserLogs)
+                        {
+                            logs.Delstatus = true;
+                        }
+                        db.SaveChanges();
+                        return "The deletion of user information was done successfully!";
+                    }
+                    else
+                    {
+                        return "The desired user was not found!!!";
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                AppLogger.LogError($"DALUsers.Delete(id={id})", e);
                 return "There was a problem deleting user information: \n" + e.Message;
             }
         }
         public List<Users> ActivityRegistered()
         {
-            return db.Users.Include("Activities").Where(i => i.DelStatus == false).ToList();
+            using (var db = new DB())
+            {
+                return db.Users.Where(i => i.DelStatus == false).ToList();
+            }
         }
-        public Users Login(string username, string Pass)
+
+        /// <summary>
+        /// Fetches a user by username (with their Usergroup eagerly loaded
+        /// for permission checks) for the login flow. Password verification
+        /// happens in BLLUser.Login via PasswordHasher, not here - PBKDF2
+        /// hashes can't be compared with a SQL "=" the way the old Base64
+        /// values could.
+        /// </summary>
+        public Users GetByUsernameWithGroup(string username)
         {
-            return db.Users.Include("Usergroup").Where(i => i.Username == username && i.password == Pass).SingleOrDefault();
+            using (var db = new DB())
+            {
+                return db.Users.Include("Usergroup").Where(i => i.Username == username).SingleOrDefault();
+            }
         }
+
         public bool AccessTo(Users U, string S, int A)
         {
-            Usergroup UG = db.UserGroups.Include("Roles").Where(i => i.id == U.Usergroup.id).FirstOrDefault();
-            Userroles UAR = UG.Roles.Where(z => z.section == S).FirstOrDefault();
-            if (A == 1)
+            using (var db = new DB())
             {
-                return UAR.canenter;
-            }
-            else if (A == 2)
-            {
-                return UAR.cancreate;
-            }
-            else if (A == 3)
-            {
-                return UAR.canedit;
-            }
-            else
-            {
-                return UAR.candelete;
+                Usergroup UG = db.UserGroups.Include("Roles").Where(i => i.id == U.Usergroup.id).FirstOrDefault();
+                Userroles UAR = UG.Roles.Where(z => z.section == S).FirstOrDefault();
+                if (A == 1)
+                {
+                    return UAR.canenter;
+                }
+                else if (A == 2)
+                {
+                    return UAR.cancreate;
+                }
+                else if (A == 3)
+                {
+                    return UAR.canedit;
+                }
+                else
+                {
+                    return UAR.candelete;
+                }
             }
         }
         public string Usercount()
         {
-            return db.Users.Where(i => i.DelStatus == false).Count().ToString();
+            using (var db = new DB())
+            {
+                return db.Users.Where(i => i.DelStatus == false).Count().ToString();
+            }
         }
         public string ReadUsername()
         {
             if (IsRegistered())
             {
-                return db.Users.Select(i => i.Username).FirstOrDefault();
+                using (var db = new DB())
+                {
+                    return db.Users.Select(i => i.Username).FirstOrDefault();
+                }
             }
             return null;
         }
@@ -213,30 +293,36 @@ namespace DAL
         {
             if (IsRegistered())
             {
-                return db.Users.Select(i => i.Fullname).FirstOrDefault();
+                using (var db = new DB())
+                {
+                    return db.Users.Select(i => i.Fullname).FirstOrDefault();
+                }
             }
             return null;
         }
 
         public string UpdateIsActive(int LoggedUserId)
         {
-            var q = db.Users.Where(i => i.id == LoggedUserId).FirstOrDefault();
             try
             {
-                if (q != null)
+                using (var db = new DB())
                 {
-                    q.IsActive = true;
-                    db.SaveChanges();
-                    return "The user Aictived";
-                }
-                else
-                {
-                    return "The user not found!!!";
+                    var q = db.Users.Where(i => i.id == LoggedUserId).FirstOrDefault();
+                    if (q != null)
+                    {
+                        q.IsActive = true;
+                        db.SaveChanges();
+                        return "The user Aictived";
+                    }
+                    else
+                    {
+                        return "The user not found!!!";
+                    }
                 }
             }
             catch (Exception e)
             {
-
+                AppLogger.LogError($"DALUsers.UpdateIsActive(id={LoggedUserId})", e);
                 return "There was a problem editing user information: \n" + e.Message;
             }
         }

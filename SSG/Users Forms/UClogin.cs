@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using System;
 using System.Collections.Generic;
@@ -60,6 +61,7 @@ namespace SSG.Users_Forms
             }
             catch (Exception m)
             {
+                AppLogger.LogError("UClogin.btnsignin_Click", m);
                 msg.MyMessagebox("Warning", "There is a Problem :" + m.Message, 3, 3);
             }
             

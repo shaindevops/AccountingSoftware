@@ -127,12 +127,12 @@ namespace SSG
                 ep.SetError(txtusername, "This field is required");
                 txtusername.Focus();
             }
-            else if (txtpassword.Text == string.Empty)
+            else if (btnsave.Text != "Edit" && txtpassword.Text == string.Empty)
             {
                 ep.SetError(txtpassword, "This field is required");
                 txtpassword.Focus();
             }
-            else if (txtconfirmpassword.Text == string.Empty)
+            else if (btnsave.Text != "Edit" && txtconfirmpassword.Text == string.Empty)
             {
                 ep.SetError(txtconfirmpassword, "This field is required");
                 txtconfirmpassword.Focus();
@@ -157,7 +157,8 @@ namespace SSG
                 else
                 {
                     ep.Clear();
-                    U.password = txtpassword.Text;
+                    // Blank password on Edit = "keep current password" (see BLLUser.Update).
+                    U.password = string.IsNullOrEmpty(txtpassword.Text) ? null : txtpassword.Text;
                 }
                 
                 if(rdoactiv.Checked)
