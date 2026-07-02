@@ -69,8 +69,9 @@ namespace SSG.Depots_Forms
 
                 mskdate.Text = DateTime.Now.ToShortDateString();
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmMovmentProductToDepot.FrmMovmentProductToDepot_Load", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -82,8 +83,9 @@ namespace SSG.Depots_Forms
                 cmbproduct.DataSource = bllp.SearchProducts(txtsearchproduct.Text);
                 cmbproduct.DisplayMember = "Product Name";
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmMovmentProductToDepot.txtsearchproduct_TextChanged", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -142,8 +144,9 @@ namespace SSG.Depots_Forms
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmMovmentProductToDepot.btnsave_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }

@@ -13,9 +13,12 @@ namespace BLL
     public class BLLDepot
     {
         DALDepot dal = new DALDepot();
-        public bool ExistDepot(Depots D)
+        /// <summary>
+        /// True if a Depot with this name already exists.
+        /// </summary>
+        public bool IsDuplicateDepot(Depots D)
         {
-            return dal.ExistDepot(D);
+            return dal.IsDuplicateDepot(D);
         }
         public string Create(Depots D)
         {
