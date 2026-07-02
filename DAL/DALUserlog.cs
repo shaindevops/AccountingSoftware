@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -12,51 +13,67 @@ namespace DAL
 {
     public class DALUserlog
     {
-        DB db = new DB();
-
         public void Create(UserLogs ul, int u)
         {
-            var user = new Users { id = u };
-            db.Users.Attach(user);
-            ul.User = user;
+            using (var db = new DB())
+            {
+                var user = new Users { id = u };
+                db.Users.Attach(user);
+                ul.User = user;
 
-            db.UserLogs.Add(ul);
-            db.SaveChanges();
+                db.UserLogs.Add(ul);
+                db.SaveChanges();
+            }
         }
         public int ReadId()
         {
-            return db.UserLogs.OrderByDescending(i => i.id).Select(i => i.id).FirstOrDefault();
+            using (var db = new DB())
+            {
+                return db.UserLogs.OrderByDescending(i => i.id).Select(i => i.id).FirstOrDefault();
+            }
         }
         public UserLogs Getlogid(int logid, int userid)
         {
-            var q = db.UserLogs.Include("User").Where(i => i.User.id == userid).Where(i => i.id == logid).OrderByDescending(i=> logid).FirstOrDefault();
-            if (q != null)
+            using (var db = new DB())
             {
-                return q;
-            }
-            else
-            {
-                return null;
+                return db.UserLogs.Include("User").Where(i => i.User.id == userid).Where(i => i.id == logid).OrderByDescending(i => logid).FirstOrDefault();
             }
         }
         public DataTable Read(int userid)
         {
-            string cmd = "SELECT  Distinct  TOP (100) PERCENT id, User_id, LogIn AS [Login Date and Time], LogOut AS [Log Out Date and Time], Username\r\nFROM            dbo.UserLogs\r\nWHERE        (User_id = " + userid+")\r\nORDER BY id DESC";
-            SqlConnection con = new SqlConnection(@"data source=.; initial catalog=SpadanDB; integrated security=true");
-            var sqladapter = new SqlDataAdapter(cmd, con);
-            var commandbuilder = new SqlCommandBuilder(sqladapter);
-            var ds = new DataSet();
-            sqladapter.Fill(ds);
-            return ds.Tables[0];
+            const string cmd = "SELECT Distinct TOP (100) PERCENT id, User_id, LogIn AS [Login Date and Time], LogOut AS [Log Out Date and Time], Username\r\nFROM            dbo.UserLogs\r\nWHERE        (User_id = @userid)\r\nORDER BY id DESC";
+            try
+            {
+                using (var con = new SqlConnection(ConnectionHelper.ConnectionString))
+                using (var sqlCommand = new SqlCommand(cmd, con))
+                {
+                    sqlCommand.Parameters.AddWithValue("@userid", userid);
+                    using (var sqladapter = new SqlDataAdapter(sqlCommand))
+                    {
+                        var commandbuilder = new SqlCommandBuilder(sqladapter);
+                        var ds = new DataSet();
+                        sqladapter.Fill(ds);
+                        return ds.Tables[0];
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                AppLogger.LogError($"DALUserlog.Read(userid={userid})", e);
+                return null;
+            }
         }
         public void Update(int logid, string logout)
         {
-            logid = ReadId();
-            var q = db.UserLogs.Where(i => i.id == logid).OrderByDescending(i => i.id).FirstOrDefault();
-            if (q != null)
+            using (var db = new DB())
             {
-                q.LogOut = logout;
-                db.SaveChanges();
+                logid = db.UserLogs.OrderByDescending(i => i.id).Select(i => i.id).FirstOrDefault();
+                var q = db.UserLogs.Where(i => i.id == logid).OrderByDescending(i => i.id).FirstOrDefault();
+                if (q != null)
+                {
+                    q.LogOut = logout;
+                    db.SaveChanges();
+                }
             }
         }
     }

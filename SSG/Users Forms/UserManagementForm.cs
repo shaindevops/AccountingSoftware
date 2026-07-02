@@ -120,8 +120,10 @@ namespace SSG
                 {
                     AddNewUserForm nu = new AddNewUserForm();
                     nu.txtusername.Text = U.Username;
-                    nu.txtpassword.Text = bll.Decode(U.password);
-                    nu.txtconfirmpassword.Text = bll.Decode(U.password);
+                    // Password fields are intentionally left blank: passwords are
+                    // now hashed (PBKDF2) and cannot be decoded back to plaintext.
+                    // Leaving them blank means "keep the current password" - see
+                    // AddNewUserForm.btnsave_Click and BLLUser.Update.
                     nu.txtfullname.Text = U.Fullname;
                     nu.txtphone.Text = U.PhoneNo;
                     nu.txtnationalid.Text = U.NationalID;

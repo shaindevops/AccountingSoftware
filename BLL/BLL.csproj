@@ -65,6 +65,7 @@
     <Compile Include="BLLTaskGroup.cs" />
     <Compile Include="BLLTasks.cs" />
     <Compile Include="BLLTaxs.cs" />
+    <Compile Include="Security\PasswordHasher.cs" />
     <Compile Include="BLLUser.cs" />
     <Compile Include="BLLUsergroup.cs" />
     <Compile Include="BLLUserlog.cs" />

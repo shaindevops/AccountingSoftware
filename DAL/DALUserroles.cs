@@ -9,11 +9,13 @@ namespace DAL
 {
     public class DALUserroles
     {
-        DB db = new DB();
         public void Create(Userroles ul)
         {
-            db.UserRoles.Add(ul);
-            db.SaveChanges();
+            using (var db = new DB())
+            {
+                db.UserRoles.Add(ul);
+                db.SaveChanges();
+            }
         }
     }
 }
