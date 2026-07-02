@@ -166,6 +166,11 @@
     <Compile Include="DALUsers.cs" />
     <Compile Include="ConnectionHelper.cs" />
     <Compile Include="DB.cs" />
+    <Compile Include="Migrations\202607022109298_UpdateDb.cs" />
+    <Compile Include="Migrations\202607022109298_UpdateDb.Designer.cs">
+      <DependentUpon>202607022109298_UpdateDb.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -193,6 +198,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ILLink\ILLink.Descriptors.LibraryBuild.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202607022109298_UpdateDb.resx">
+      <DependentUpon>202607022109298_UpdateDb.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
