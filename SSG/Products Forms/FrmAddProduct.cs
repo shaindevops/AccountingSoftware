@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using DevComponents.DotNetBar.Charts;
 using SSG.Depots_Forms;
@@ -101,25 +102,6 @@ namespace SSG.Products_Forms
                 propic.Image = pic;
             }
         }
-        string SavePic(string code)
-        {
-            string path = Path.GetDirectoryName(Application.ExecutablePath) + @"\Propic\";
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            string PicName = code + ".JPG";
-            try
-            {
-                string picPath = ofd.FileName;
-                File.Copy(picPath, path + PicName, true);
-            }
-            catch (Exception e)
-            {
-                msg.MyMessagebox("Warning", "The system cannot save the Product's photo!!!" + e.Message, 3, 3);
-            }
-            return path + PicName;
-        }
         private void btnsave_Click(object sender, EventArgs e)
         {
             try
@@ -154,7 +136,14 @@ namespace SSG.Products_Forms
 
                     if (btnsave.Text == "Save")
                     {
-                        P.Image = SavePic(txtprocode.Text);
+                        try
+                        {
+                            P.Image = bll.SaveProductImage(ofd.FileName, txtprocode.Text);
+                        }
+                        catch (Exception imgEx)
+                        {
+                            msg.MyMessagebox("Warning", "The system cannot save the Product's photo!!!" + imgEx.Message, 3, 3);
+                        }
                         msg.MyMessagebox("Create New Product", bll.Create(P, G.id), 0, 0);
                     }
                     else if (btnsave.Text == "Edit")
@@ -186,8 +175,9 @@ namespace SSG.Products_Forms
 
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmAddProduct.btnsave_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
