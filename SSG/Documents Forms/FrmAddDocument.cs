@@ -152,7 +152,7 @@ namespace SSG.Documents_Forms
                     D.Date2 = mskdocmaturitydate.Text;
                     D.Description = txtdesc.Text;
                     D.Price = intprice.Value;
-                    CG = bllcg.ReadId28(CostGroupType);
+                    CG = bllcg.ReadId(CostGroupType);
                     D.CostGroup = CG;
                     P = bllp.ReadN(PersonName);
                     D.People = P;

@@ -1,4 +1,5 @@
-﻿using BLL;
+﻿using BE.Logging;
+using BLL;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -47,6 +48,7 @@ namespace SSG.Stocks_Forms
             }
             catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowStockDetails.<load>", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost" + "\n" + ex.Message, 2, 2);
             }
         }
@@ -69,6 +71,7 @@ namespace SSG.Stocks_Forms
             }
             catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowStockDetails.<other>", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost" + "\n" + ex.Message, 2, 2);
             }
         }

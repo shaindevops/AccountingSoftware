@@ -22,14 +22,6 @@ namespace BLL
         {
             return dal.ReadId(id);
         }
-        public CostGroup ReadId28(int id)
-        {
-            return dal.ReadId28(id);
-        }
-        public CostGroup ReadId29(int id)
-        {
-            return dal.ReadId29(id);
-        }
         public DataTable FillCostGroup()
         {
             return dal.FillCostGroup();

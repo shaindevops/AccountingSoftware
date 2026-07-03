@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using SSG.Products_Forms;
 using System;
@@ -26,12 +27,9 @@ namespace SSG.Depots_Forms
         Products P = new Products();
         BLLProducts bllp = new BLLProducts();
 
-        Stocks S = new Stocks();
         BLLStocks blls = new BLLStocks();
 
         msgclass msg = new msgclass();
-
-        int SumStock = 0;
 
         Users LoggedUser = new Users();
         BLLUser bllu = new BLLUser();
@@ -69,8 +67,9 @@ namespace SSG.Depots_Forms
 
                 mskdate.Text = DateTime.Now.ToShortDateString();
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmMovmentProductToDepot.FrmMovmentProductToDepot_Load", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -82,8 +81,9 @@ namespace SSG.Depots_Forms
                 cmbproduct.DataSource = bllp.SearchProducts(txtsearchproduct.Text);
                 cmbproduct.DisplayMember = "Product Name";
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmMovmentProductToDepot.txtsearchproduct_TextChanged", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -101,49 +101,27 @@ namespace SSG.Depots_Forms
                 else
                 {
                     ep.Clear();
-                    
-                    //Out Stock 
+
                     D = blld.DepotName(cmbfromdepot.Text);
-                    S.DepotId = D.id;
-
                     P = bllp.ProductName(cmbproduct.Text);
-                    S.Product = P;
-                    S.ProductId = P.id;
+                    Depots toDepot = blld.DepotName(cmbtodepot.Text);
 
-                    S.RegDate = mskdate.Text;
-                    S.Description = "Move This Product To " + cmbtodepot.Text;
-                    S.StockIn = 0;
-                    S.StockOut = intcount.Value;
-                    SumStock = blls.GetProductSttockInDepot(S.DepotId, S.ProductId);
-                    if (intcount.Value > SumStock)
+                    string result = blls.TransferStock(D.id, toDepot.id, P.id, intcount.Value, mskdate.Text);
+
+                    if (result == "There is not enough stock")
                     {
                         ep.SetError(intcount, "There is not enough stock");
                         intcount.Focus();
                     }
                     else
                     {
-                        ep.Clear();
-                        blls.Create(S, 0, D.id, P.id);
-                        //In Srock
-                        D = blld.DepotName(cmbtodepot.Text);
-                        S.DepotId = D.id;
-
-                        P = bllp.ProductName(cmbproduct.Text);
-                        S.Product = P;
-                        S.ProductId = P.id;
-
-                        S.RegDate = mskdate.Text;
-                        S.Description = "Move This Product From " + cmbfromdepot.Text;
-                        S.StockIn = intcount.Value;
-                        S.StockOut = 0;
-                        blls.Create(S, 0, D.id, P.id);
-
-                        msg.MyMessagebox("Movement Message", "The operation of transferring the product to another Depot was successfully completed.", 0, 0);
+                        msg.MyMessagebox("Movement Message", result, 0, 0);
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmMovmentProductToDepot.btnsave_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }

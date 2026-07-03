@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,7 @@ namespace SSG.Stocks_Forms
             }
             catch (Exception ex)
             {
+                AppLogger.LogError("FrmSelectedDepot.<load>", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost" + "\n" + ex.Message, 2, 2);
             }
         }

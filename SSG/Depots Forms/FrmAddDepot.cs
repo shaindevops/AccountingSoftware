@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using SSG.Groups_Forms;
 using SSG.Products_Forms;
@@ -101,8 +102,9 @@ namespace SSG.Depots_Forms
                     FrmMovmentProductToDepot.FrmMovmentProductToDepot_Load(null, null);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmAddDepot.btnsave_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }

@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using System;
 using System.Collections.Generic;
@@ -127,8 +128,9 @@ namespace SSG.Depots_Forms
                     id = (int)dgvdepots.SelectedRows[0].Cells["id"].Value;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowDepots.dgvdepots_SelectionChanged", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }

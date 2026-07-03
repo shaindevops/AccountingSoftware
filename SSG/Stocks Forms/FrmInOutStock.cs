@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using SSG.Depots_Forms;
 using SSG.Products_Forms;
@@ -99,8 +100,9 @@ namespace SSG.Stocks_Forms
                 strToday = DateTime.Now.ToShortDateString();
                 mskregdate.Text = strToday;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmInOutStock.FrmInOutStock_Load", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -113,8 +115,9 @@ namespace SSG.Stocks_Forms
                 cmbproduct.DataSource = bllpro.SearchProducts(txtsearchproduct.Text);
                 cmbproduct.DisplayMember = "Product Name";
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmInOutStock.txtsearchproduct_TextChanged", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }
@@ -170,8 +173,9 @@ namespace SSG.Stocks_Forms
                     frmshowstock.FrmShowStocks_Load(null, null);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.LogError("FrmInOutStock.btnsave_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost", 2, 2);
             }
         }

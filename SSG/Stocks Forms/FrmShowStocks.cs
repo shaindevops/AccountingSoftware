@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Logging;
 using BLL;
 using Stimulsoft.Report;
 using System;
@@ -52,6 +53,7 @@ namespace SSG.Stocks_Forms
             }
             catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowStocks.FrmShowStocks_Load", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost" + "\n" + ex.Message, 2, 2);
             }
         }
@@ -76,6 +78,7 @@ namespace SSG.Stocks_Forms
             }
             catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowStocks.txtserch_TextChanged", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost" + "\n" + ex.Message, 2, 2);
             }
         }
@@ -93,6 +96,7 @@ namespace SSG.Stocks_Forms
             }
             catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowStocks.btnshowdetail_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost" + "\n" + ex.Message, 2, 2);
             }
         }
@@ -115,6 +119,7 @@ namespace SSG.Stocks_Forms
             }
             catch (Exception ex)
             {
+                AppLogger.LogError("FrmShowStocks.btnpreview_Click", ex);
                 msg.MyMessagebox("Server Connection", "Connection to the server has been lost" + "\n" + ex.Message, 2, 2);
             }
         }
