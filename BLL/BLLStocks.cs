@@ -50,6 +50,16 @@ namespace BLL
         {
             return dal.GetProductSttockInDepot(DepotId, ProductId);
         }
+
+        /// <summary>
+        /// Atomically moves stock of one product from one depot to another.
+        /// See DALStocks.TransferStock for why this replaced two separate
+        /// Create() calls made directly from FrmMovmentProductToDepot.
+        /// </summary>
+        public string TransferStock(int fromDepotId, int toDepotId, int productId, int quantity, string regDate)
+        {
+            return dal.TransferStock(fromDepotId, toDepotId, productId, quantity, regDate);
+        }
         public DataTable FillStockAlerm()
         {
             return dal.FillStockAlerm();
